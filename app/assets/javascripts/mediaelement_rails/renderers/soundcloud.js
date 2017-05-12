@@ -53,28 +53,31 @@ var SoundCloudApi = {
   */
 	loadIframeApi: function loadIframeApi() {
 		if (!SoundCloudApi.isSDKStarted) {
+			(function () {
 
-			var head = document.getElementsByTagName("head")[0] || document.documentElement,
-			    script = document.createElement("script");
+				var head = document.getElementsByTagName("head")[0] || document.documentElement,
+				    script = document.createElement("script");
 
-			var done = false;
+				var done = false;
 
-			script.src = '//w.soundcloud.com/player/api.js';
+				script.src = '//w.soundcloud.com/player/api.js';
 
-			// Attach handlers for all browsers
-			// Is onload enough now? do IE9 support it?
-			script.onload = script.onreadystatechange = function () {
-				if (!done && (!SoundCloudApi.readyState || SoundCloudApi.readyState === "loaded" || SoundCloudApi.readyState === "complete")) {
-					done = true;
-					SoundCloudApi.apiReady();
+				// Attach handlers for all browsers
+				script.onload = script.onreadystatechange = function () {
+					if (!done && (!SoundCloudApi.readyState || SoundCloudApi.readyState === "loaded" || SoundCloudApi.readyState === "complete")) {
+						done = true;
+						SoundCloudApi.apiReady();
 
-					// Handle memory leak in IE
-					script.onload = script.onreadystatechange = null;
-					script.remove();
-				}
-			};
-			head.appendChild(script);
-			SoundCloudApi.isSDKStarted = true;
+						// Handle memory leak in IE
+						script.onload = script.onreadystatechange = null;
+						if (head && script.parentNode) {
+							head.removeChild(script);
+						}
+					}
+				};
+				head.appendChild(script);
+				SoundCloudApi.isSDKStarted = true;
+			})();
 		}
 	},
 
@@ -133,8 +136,7 @@ var SoundCloudIframeRenderer = {
 		// create our fake element that allows events and such to work
 		var sc = {},
 		    apiStack = [],
-		    readyState = 4,
-		    autoplay = mediaElement.originalNode.autoplay;
+		    readyState = 4;
 
 		var duration = 0,
 		    currentTime = 0,
@@ -217,10 +219,6 @@ var SoundCloudIframeRenderer = {
 							var url = typeof value === 'string' ? value : value[0].src;
 
 							scPlayer.load(url);
-
-							if (autoplay) {
-								scPlayer.play();
-							}
 							break;
 
 						case 'currentTime':
@@ -300,10 +298,6 @@ var SoundCloudIframeRenderer = {
 		window['__ready__' + sc.id] = function (_scPlayer) {
 
 			mediaElement.scPlayer = scPlayer = _scPlayer;
-
-			if (autoplay) {
-				scPlayer.play();
-			}
 
 			// do call stack
 			if (apiStack.length) {

@@ -56,24 +56,26 @@ var twitchApi = {
   */
 	loadIframeApi: function loadIframeApi() {
 		if (!twitchApi.isIframeStarted) {
+			(function () {
 
-			var script = document.createElement('script'),
-			    firstScriptTag = document.getElementsByTagName('script')[0];
+				var script = document.createElement('script'),
+				    firstScriptTag = document.getElementsByTagName('script')[0];
 
-			var done = false;
+				var done = false;
 
-			script.src = '//player.twitch.tv/js/embed/v1.js';
+				script.src = '//player.twitch.tv/js/embed/v1.js';
 
-			// Attach handlers for all browsers
-			script.onload = script.onreadystatechange = function () {
-				if (!done && (!this.readyState || this.readyState === undefined || this.readyState === 'loaded' || this.readyState === 'complete')) {
-					done = true;
-					twitchApi.iFrameReady();
-					script.onload = script.onreadystatechange = null;
-				}
-			};
-			firstScriptTag.parentNode.insertBefore(script, firstScriptTag);
-			twitchApi.isIframeStarted = true;
+				// Attach handlers for all browsers
+				script.onload = script.onreadystatechange = function () {
+					if (!done && (!twitchApi.readyState || twitchApi.readyState === undefined || twitchApi.readyState === "loaded" || twitchApi.readyState === "complete")) {
+						done = true;
+						twitchApi.iFrameReady();
+						script.onload = script.onreadystatechange = null;
+					}
+				};
+				firstScriptTag.parentNode.insertBefore(script, firstScriptTag);
+				twitchApi.isIframeStarted = true;
+			})();
 		}
 	},
 
@@ -230,6 +232,7 @@ var TwitchIframeRenderer = {
 		var twitchPlayer = null,
 		    paused = true,
 		    ended = false,
+		    twitchIframe = null,
 		    hasStartedPlaying = false,
 		    volume = 1,
 		    duration = Infinity,
@@ -451,7 +454,7 @@ var TwitchIframeRenderer = {
 				paused = false;
 				ended = false;
 				sendEvents(['rendererready', 'loadedmetadata', 'loadeddata', 'canplay']);
-			});
+			}, false);
 			twitchPlayer.addEventListener('play', function () {
 				if (!hasStartedPlaying) {
 					hasStartedPlaying = true;
@@ -465,14 +468,14 @@ var TwitchIframeRenderer = {
 					twitchPlayer.getCurrentTime();
 					sendEvents(['timeupdate']);
 				}, 250);
-			});
+			}, false);
 			twitchPlayer.addEventListener('pause', function () {
 				paused = true;
 				ended = false;
 				if (!twitchPlayer.getEnded()) {
 					sendEvents(['pause']);
 				}
-			});
+			}, false);
 			twitchPlayer.addEventListener('ended', function () {
 				paused = true;
 				ended = true;
@@ -480,7 +483,7 @@ var TwitchIframeRenderer = {
 				clearInterval(timer);
 				hasStartedPlaying = false;
 				timer = null;
-			});
+			}, false);
 		};
 
 		// CREATE Twitch
@@ -493,7 +496,7 @@ var TwitchIframeRenderer = {
 			width: width,
 			height: height,
 			playsinline: false,
-			autoplay: mediaElement.originalNode.autoplay
+			autoplay: false
 		};
 
 		twitchSettings[type] = twitchId;
@@ -503,7 +506,6 @@ var TwitchIframeRenderer = {
 
 		mediaElement.originalNode.parentNode.insertBefore(twitchContainer, mediaElement.originalNode);
 		mediaElement.originalNode.style.display = 'none';
-		mediaElement.originalNode.autoplay = false;
 
 		// send it off for async loading and creation
 		twitchApi.enqueueIframe(twitchSettings);
@@ -516,10 +518,14 @@ var TwitchIframeRenderer = {
 		};
 		twitch.hide = function () {
 			twitch.pause();
-			twitchContainer.style.display = 'none';
+			if (twitchIframe) {
+				twitchIframe.style.display = 'none';
+			}
 		};
 		twitch.show = function () {
-			twitchContainer.style.display = '';
+			if (twitchIframe) {
+				twitchIframe.style.display = '';
+			}
 		};
 		twitch.destroy = function () {};
 

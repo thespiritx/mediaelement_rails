@@ -1,3 +1,3 @@
 module MediaelementRails
-  VERSION = '0.9.0.bgsu'
+  VERSION = '0.9.1.bgsu'
 end

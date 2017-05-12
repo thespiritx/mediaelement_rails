@@ -53,8 +53,7 @@ var FacebookRenderer = {
 		var fbWrapper = {},
 		    apiStack = [],
 		    eventHandler = {},
-		    readyState = 4,
-		    autoplay = mediaElement.originalNode.autoplay;
+		    readyState = 4;
 
 		var src = '',
 		    paused = true,
@@ -133,15 +132,11 @@ var FacebookRenderer = {
 
 							// Only way is to destroy instance and all the events fired,
 							// and create new one
-							fbDiv.remove();
+							fbDiv.parentNode.removeChild(fbDiv);
 							createFacebookEmbed(url, options.facebook);
 
 							// This method reloads video on-demand
 							FB.XFBML.parse();
-
-							if (autoplay) {
-								fbApi.play();
-							}
 
 							break;
 
@@ -242,10 +237,7 @@ var FacebookRenderer = {
    * @param {Object} config
    */
 		function createFacebookEmbed(url, config) {
-
-			// Append width and height if not detected
 			src = url;
-
 			fbDiv = document.createElement('div');
 			fbDiv.id = fbWrapper.id;
 			fbDiv.className = "fb-video";
@@ -267,94 +259,97 @@ var FacebookRenderer = {
 				FB.Event.subscribe('xfbml.ready', function (msg) {
 
 					if (msg.type === 'video') {
+						(function () {
 
-						fbApi = msg.instance;
+							fbApi = msg.instance;
 
-						// Set proper size since player dimensions are unknown before this event
-						var fbIframe = fbDiv.getElementsByTagName('iframe')[0],
-						    width = fbIframe.offsetWidth,
-						    height = fbIframe.offsetHeight,
-						    events = ['mouseover', 'mouseout'],
-						    assignEvents = function assignEvents(e) {
-							var event = mejs.Utils.createEvent(e.type, fbWrapper);
-							mediaElement.dispatchEvent(event);
-						};
+							// Set proper size since player dimensions are unknown before this event
+							var fbIframe = fbDiv.getElementsByTagName('iframe')[0],
+							    width = parseInt(window.getComputedStyle(fbIframe, null).width),
+							    height = parseInt(fbIframe.style.height),
+							    events = ['mouseover', 'mouseout'],
+							    assignEvents = function assignEvents(e) {
+								var event = mejs.Utils.createEvent(e.type, fbWrapper);
+								mediaElement.dispatchEvent(event);
+							};
 
-						fbWrapper.setSize(width, height);
+							fbWrapper.setSize(width, height);
 
-						if (autoplay) {
-							fbApi.play();
-						}
-
-						for (var _i3 = 0, _total3 = events.length; _i3 < _total3; _i3++) {
-							fbIframe.addEventListener(events[_i3], assignEvents, false);
-						}
-
-						// remove previous listeners
-						var fbEvents = ['startedPlaying', 'paused', 'finishedPlaying', 'startedBuffering', 'finishedBuffering'];
-						for (var _i4 = 0, _total4 = fbEvents.length; _i4 < _total4; _i4++) {
-							var event = fbEvents[_i4],
-							    handler = eventHandler[event];
-							if (handler !== undefined && handler !== null && !mejs.Utils.isObjectEmpty(handler) && typeof handler.removeListener === 'function') {
-								handler.removeListener(event);
+							for (var _i3 = 0, _total3 = events.length; _i3 < _total3; _i3++) {
+								fbIframe.addEventListener(events[_i3], assignEvents, false);
 							}
-						}
 
-						// do call stack
-						if (apiStack.length) {
-							for (var _i5 = 0, _total5 = apiStack.length; _i5 < _total5; _i5++) {
-
-								var stackItem = apiStack[_i5];
-
-								if (stackItem.type === 'set') {
-									var propName = stackItem.propName,
-									    capName = '' + propName.substring(0, 1).toUpperCase() + propName.substring(1);
-
-									fbWrapper['set' + capName](stackItem.value);
-								} else if (stackItem.type === 'call') {
-									fbWrapper[stackItem.methodName]();
+							// remove previous listeners
+							var fbEvents = ['startedPlaying', 'paused', 'finishedPlaying', 'startedBuffering', 'finishedBuffering'];
+							for (var _i4 = 0, _total4 = fbEvents.length; _i4 < _total4; _i4++) {
+								var event = fbEvents[_i4],
+								    handler = eventHandler[event];
+								if (handler !== undefined && handler !== null && !mejs.Utils.isObjectEmpty(handler) && typeof handler.removeListener === 'function') {
+									handler.removeListener(event);
 								}
 							}
-						}
 
-						sendEvents(['rendererready', 'loadeddata', 'canplay', 'progress', 'loadedmetadata', 'timeupdate']);
+							// do call stack
+							if (apiStack.length) {
+								for (var _i5 = 0, _total5 = apiStack.length; _i5 < _total5; _i5++) {
 
-						var timer = void 0;
+									var stackItem = apiStack[_i5];
 
-						// Custom Facebook events
-						eventHandler.startedPlaying = fbApi.subscribe('startedPlaying', function () {
-							if (!hasStartedPlaying) {
-								hasStartedPlaying = true;
+									if (stackItem.type === 'set') {
+										var propName = stackItem.propName,
+										    capName = '' + propName.substring(0, 1).toUpperCase() + propName.substring(1);
+
+										fbWrapper['set' + capName](stackItem.value);
+									} else if (stackItem.type === 'call') {
+										fbWrapper[stackItem.methodName]();
+									}
+								}
 							}
-							paused = false;
-							ended = false;
-							sendEvents(['play', 'playing', 'timeupdate']);
 
-							// Workaround to update progress bar
-							timer = setInterval(function () {
-								fbApi.getCurrentPosition();
-								sendEvents(['timeupdate']);
-							}, 250);
-						});
-						eventHandler.paused = fbApi.subscribe('paused', function () {
-							paused = true;
-							ended = false;
-							sendEvents(['pause']);
-						});
-						eventHandler.finishedPlaying = fbApi.subscribe('finishedPlaying', function () {
-							paused = true;
-							ended = true;
+							sendEvents(['rendererready', 'loadeddata', 'canplay', 'progress', 'loadedmetadata', 'timeupdate']);
 
-							sendEvents(['ended']);
-							clearInterval(timer);
-							timer = null;
-						});
-						eventHandler.startedBuffering = fbApi.subscribe('startedBuffering', function () {
-							sendEvents(['progress', 'timeupdate']);
-						});
-						eventHandler.finishedBuffering = fbApi.subscribe('finishedBuffering', function () {
-							sendEvents(['progress', 'timeupdate']);
-						});
+							var timer = void 0;
+
+							// Custom Facebook events
+							eventHandler.startedPlaying = fbApi.subscribe('startedPlaying', function () {
+								if (!hasStartedPlaying) {
+									hasStartedPlaying = true;
+								}
+								paused = false;
+								ended = false;
+								sendEvents(['play', 'playing', 'timeupdate']);
+
+								// Workaround to update progress bar
+								timer = setInterval(function () {
+									fbApi.getCurrentPosition();
+									sendEvents(['timeupdate']);
+								}, 250);
+							});
+							eventHandler.paused = fbApi.subscribe('paused', function () {
+								paused = true;
+								ended = false;
+								sendEvents(['pause']);
+							});
+							eventHandler.finishedPlaying = fbApi.subscribe('finishedPlaying', function () {
+								paused = true;
+								ended = true;
+
+								// Workaround to update progress bar one last time and trigger ended event
+								timer = setInterval(function () {
+									fbApi.getCurrentPosition();
+									sendEvents(['timeupdate', 'ended']);
+								}, 250);
+
+								clearInterval(timer);
+								timer = null;
+							});
+							eventHandler.startedBuffering = fbApi.subscribe('startedBuffering', function () {
+								sendEvents(['progress', 'timeupdate']);
+							});
+							eventHandler.finishedBuffering = fbApi.subscribe('finishedBuffering', function () {
+								sendEvents(['progress', 'timeupdate']);
+							});
+						})();
 					}
 				});
 			};
@@ -389,8 +384,8 @@ var FacebookRenderer = {
 		};
 		fbWrapper.setSize = function (width, height) {
 			if (fbApi !== null && !isNaN(width) && !isNaN(height)) {
-				fbDiv.style.width = width;
-				fbDiv.style.height = height;
+				fbDiv.setAttribute('width', width);
+				fbDiv.setAttribute('height', height);
 			}
 		};
 		fbWrapper.destroy = function () {};

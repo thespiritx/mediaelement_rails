@@ -5461,7 +5461,7 @@ var DashNativeRenderer = {
 
 			node['set' + capName] = function (value) {
 				if (!_mejs2.default.html5media.readOnlyProperties.includes(propName)) {
-					if (dashPlayer !== null) {
+					if (dashPlayer !== undefined && dashPlayer !== null) {
 						if (propName === 'src') {
 
 							dashPlayer.attachSource(value);
@@ -7682,7 +7682,7 @@ for (var i = 0, total = html5Elements.length; i < total; i++) {
 }
 
 // Test if browsers support HLS natively (right now Safari, Android's Chrome and Stock browsers, and MS Edge)
-var SUPPORTS_NATIVE_HLS = exports.SUPPORTS_NATIVE_HLS = IS_SAFARI || IS_ANDROID && (IS_CHROME || IS_STOCK_ANDROID) || IS_IE && UA.match(/edge/gi) !== null;
+var SUPPORTS_NATIVE_HLS = exports.SUPPORTS_NATIVE_HLS = IS_SAFARI || IS_ANDROID && (IS_STOCK_ANDROID) || IS_IE && UA.match(/edge/gi) !== null;
 
 // Detect native JavaScript fullscreen (Safari/Firefox only, Chrome still fails)
 
@@ -7790,7 +7790,7 @@ _mejs2.default.Features.isSafari = IS_SAFARI;
 _mejs2.default.Features.isStockAndroid = IS_STOCK_ANDROID;
 _mejs2.default.Features.hasMSE = HAS_MSE;
 _mejs2.default.Features.supportsNativeHLS = SUPPORTS_NATIVE_HLS;
-
+_mejs2.default.Features.ua = UA;
 _mejs2.default.Features.supportsPointerEvents = SUPPORT_POINTER_EVENTS;
 _mejs2.default.Features.hasiOSFullScreen = HAS_IOS_FULLSCREEN;
 _mejs2.default.Features.hasNativeFullscreen = HAS_NATIVE_FULLSCREEN;

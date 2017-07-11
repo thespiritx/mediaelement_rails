@@ -4803,7 +4803,7 @@ var MediaElementPlayer = function () {
 			if (t.featurePosition[key] !== undefined) {
 				element.insertAfter(t.controls.children(':eq(' + (t.featurePosition[key] - 1) + ')'));
 			} else {
-				if(typeof element.appendTo === 'function')
+				if(typeof element.appendTo === 'function') element = $(element);
 				element.appendTo(t.controls);
 				t.featurePosition[key] = t.controls.find(element).index();
 			}

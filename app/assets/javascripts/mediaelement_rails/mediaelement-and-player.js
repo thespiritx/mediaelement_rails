@@ -467,6 +467,7 @@ var MediaElement = function MediaElement(idOrNode, options) {
 	_classCallCheck(this, MediaElement);
 
 	var t = this;
+	var pp = undefined; // PlayerPromise
 
 	t.defaults = {
 		/**
@@ -740,6 +741,23 @@ var MediaElement = function MediaElement(idOrNode, options) {
 
 	// IE && iOS
 	t.mediaElement.events = {};
+	// BGSU : PlayPromise Pause
+	t.mediaElement.playPromisePause = function(obj){
+		if(!_constants.IS_EDGE){
+			if(pp !== undefined){
+				pp.then(_ => {
+					obj.pause();
+				})
+				.catch(error => {
+					if(window.console) console.log('Pause attempt failed.');
+				});
+			} else {
+				if(window.console) console.log('Pause attempt while still loading.');
+			}
+		} else {
+			obj.pause();
+		}
+	};
 
 	// start: fake events
 	t.mediaElement.addEventListener = function (eventName, callback) {
@@ -1627,9 +1645,9 @@ Object.assign(_player2.default.prototype, {
 
 		play.click(function () {
 			if (media.paused) {
-				media.play();
+				t.pp = media.play();
 			} else {
-				media.pause();
+				t.playPromisePause(media);
 			}
 		});
 
@@ -1839,7 +1857,7 @@ Object.assign(_player2.default.prototype, {
 		restartPlayer = function restartPlayer() {
 			var now = new Date();
 			if (now - lastKeyPressTime >= 1000) {
-				media.play();
+				t.pp = media.play();
 			}
 		},
 		    handleMouseup = function handleMouseup() {
@@ -1850,7 +1868,7 @@ Object.assign(_player2.default.prototype, {
 				t.updateCurrent(t.newTime);
 			}
 			if (t.forcedHandlePause) {
-				t.media.play();
+				t.pp = t.media.play();
 			}
 			t.forcedHandlePause = false;
 		};
@@ -1902,18 +1920,18 @@ Object.assign(_player2.default.prototype, {
 						// space
 						if (!_constants.IS_FIREFOX) {
 							if (media.paused) {
-								media.play();
+								t.pp = media.play();
 							} else {
-								media.pause();
+								t.playPromisePause(media);
 							}
 						}
 						return;
 					case 13:
 						// enter
 						if (media.paused) {
-							media.play();
+							t.pp = media.play();
 						} else {
-							media.pause();
+							t.playPromisePause(media);
 						}
 						return;
 					default:
@@ -1923,7 +1941,7 @@ Object.assign(_player2.default.prototype, {
 				seekTime = seekTime < 0 ? 0 : seekTime >= duration ? duration : Math.floor(seekTime);
 				lastKeyPressTime = new Date();
 				if (!startedPaused) {
-					media.pause();
+					t.playPromisePause(media);
 				}
 
 				if (seekTime < media.duration && !startedPaused) {
@@ -2420,7 +2438,7 @@ Object.assign(_player2.default.prototype, {
 
 			media.setCurrentTime(parseFloat(self.val()));
 			if (media.paused) {
-				media.play();
+				t.pp = media.play();
 			}
 		}).on('click', '.' + t.options.classPrefix + 'chapters-selector-label', function () {
 			$(this).siblings('input[type="radio"]').trigger('click');
@@ -3700,9 +3718,9 @@ var config = exports.config = {
 
 			if (!_constants.IS_FIREFOX) {
 				if (media.paused || media.ended) {
-					media.play();
+					t.pp = media.play();
 				} else {
-					media.pause();
+					t.playPromisePause(media);
 				}
 			}
 		}
@@ -4328,7 +4346,7 @@ var MediaElementPlayer = function () {
 								var p = _mejs2.default.players[playerIndex];
 
 								if (p.id !== t.id && t.options.pauseOtherPlayers && !p.paused && !p.ended) {
-									p.pause();
+								t.playPromisePause(p);
 									p.hasFocus = false;
 								}
 							}
@@ -4353,7 +4371,7 @@ var MediaElementPlayer = function () {
 						if (typeof t.media.stop === 'function') {
 							t.media.stop();
 						} else {
-							t.media.pause();
+						t.playPromisePause(t.media);
 						}
 
 						if (t.setProgressRail) {
@@ -4826,7 +4844,7 @@ var MediaElementPlayer = function () {
 				$('<div id="' + t.media.id + '-iframe-overlay" class="' + t.options.classPrefix + 'iframe-overlay"></div>').insertBefore($('#' + t.media.id + '_' + t.media.rendererName)).on('click', function (e) {
 					if (t.options.clickToPlayPause) {
 						if (t.media.paused) {
-							t.media.play();
+							t.pp = t.media.play();
 						} else {
 							t.media.pause();
 						}
@@ -4973,9 +4991,9 @@ var MediaElementPlayer = function () {
 					    pressed = button.attr('aria-pressed');
 
 					if (media.paused) {
-						media.play();
+						t.pp = media.play();
 					} else {
-						media.pause();
+						t.playPromisePause(media);
 					}
 
 					button.attr('aria-pressed', !!pressed);
@@ -5111,13 +5129,14 @@ var MediaElementPlayer = function () {
 			if (t.media.getCurrentTime() <= 0) {
 				t.load();
 			}
-			t.media.play();
+			t.pp = t.media.play();
 		}
 	}, {
 		key: 'pause',
 		value: function pause() {
+			var t = this;
 			try {
-				this.media.pause();
+				t.playPromisePause(this.media);
 			} catch (e) {
 				
 			}
@@ -5181,7 +5200,7 @@ var MediaElementPlayer = function () {
 
 			// Stop completely media playing
 			if (!t.media.paused) {
-				t.media.pause();
+				t.playPromisePause(t.media);
 			}
 
 			var src = t.media.originalNode.getAttribute('src');
@@ -6753,7 +6772,9 @@ var HlsNativeRenderer = {
 			}, false);
 
 			node.addEventListener('pause', function () {
+				if (hlsPlayer !== null) {
 				hlsPlayer.stopLoad();
+				}
 			}, false);
 		}
 
@@ -6788,11 +6809,15 @@ var HlsNativeRenderer = {
 		};
 
 		node.destroy = function () {
+			if (hlsPlayer !== null) {
 			hlsPlayer.destroy();
+			}
 		};
 
 		node.stop = function () {
+			if (hlsPlayer !== null) {
 			hlsPlayer.stopLoad();
+			}
 		};
 
 		var event = (0, _general.createEvent)('rendererready', node);

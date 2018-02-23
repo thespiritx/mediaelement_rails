@@ -1647,7 +1647,13 @@ Object.assign(_player2.default.prototype, {
 			if (media.paused) {
 				t.pp = media.play();
 			} else {
-				t.playPromisePause(media);
+				if(window.console) {
+					console.log(player);
+					console.log(controls);
+					console.log(layers);
+					console.log(media);
+				}
+				media.playPromisePause(media);
 			}
 		});
 

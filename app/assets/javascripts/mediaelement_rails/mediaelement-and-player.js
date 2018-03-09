@@ -1649,7 +1649,7 @@ Object.assign(_player2.default.prototype, {
 			if (media.paused) {
 				t.pp = media.play();
 			} else {
-				if(window.console) {
+				if(window.console && obj.debug) {
 					console.log(player);
 					console.log(controls);
 					console.log(layers);

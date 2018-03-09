@@ -4277,12 +4277,12 @@ var MediaElementPlayer = function () {
 									    pressed = button.attr('aria-pressed');
 
 									if (t.media.paused && pressed) {
-										mejs.players.mep_0.playPromisePause(t.media);
+										t.media.playPromisePause(t.media);
 										//t.pause();
 									} else if (t.media.paused) {
 										t.play();
 									} else {
-										mejs.players.mep_0.playPromisePause(t.media);
+										t.media.playPromisePause(t.media);
 										//t.pause();
 									}
 
@@ -4380,7 +4380,7 @@ var MediaElementPlayer = function () {
 						if (typeof t.media.stop === 'function') {
 							t.media.stop();
 						} else {
-							mejs.players.mep_0.playPromisePause(t.media);
+							t.media.playPromisePause(t.media);
 						}
 
 						if (t.setProgressRail) {

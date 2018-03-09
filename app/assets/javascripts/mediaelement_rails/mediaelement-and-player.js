@@ -4277,7 +4277,8 @@ var MediaElementPlayer = function () {
 									    pressed = button.attr('aria-pressed');
 
 									if (t.media.paused && pressed) {
-										t.pause();
+										mejs.players.mep_0.playPromisePause(t.media);
+										//t.pause();
 									} else if (t.media.paused) {
 										t.play();
 									} else {
@@ -4854,7 +4855,8 @@ var MediaElementPlayer = function () {
 						if (t.media.paused) {
 							t.pp = t.media.play();
 						} else {
-							t.media.pause();
+							mejs.players.mep_0.playPromisePause(t.media);
+							//t.media.pause();
 						}
 
 						e.preventDefault();

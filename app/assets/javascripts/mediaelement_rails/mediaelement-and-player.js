@@ -745,16 +745,22 @@ var MediaElement = function MediaElement(idOrNode, options) {
 	// BGSU : PlayPromise Pause
 	t.mediaElement.playPromisePause = function(obj){
 		if(!mejs.Features.IS_EDGE){
-			if(pp !== undefined){
-				pp.then(_ => {
-					obj.pause();
-				})
-				.catch(error => {
-					if(window.console && obj.debug) console.log('Pause attempt failed.');
-				});
+			if(obj.getReadyState() != 2) {
+				if(pp !== undefined){
+					pp.then(_ => {
+						obj.pause();
+					})
+					.catch(error => {
+						if(window.console && obj.debug) console.log('Pause attempt failed.');
+					});
+				} else {
+					if(window.console && obj.debug) console.log('Pause attempt while still loading.');
+					if(obj.getReadyState() == 4 && !obj.getPaused() && !obj.paused) obj.pause();
+				}
 			} else {
-				if(window.console && obj.debug) console.log('Pause attempt while still loading.');
-				if(obj.getReadyState() == 4 && !obj.getPaused() && !obj.paused) obj.pause();
+				// HEADERS RECEIVED NON ERROR FIX
+				obj.pause();
+				obj.play();
 			}
 		} else {
 			obj.pause();
@@ -1649,7 +1655,7 @@ Object.assign(_player2.default.prototype, {
 			if (media.paused) {
 				t.pp = media.play();
 			} else {
-				if(window.console && obj.debug) {
+				if(window.console && media.debug) {
 					console.log(player);
 					console.log(controls);
 					console.log(layers);
@@ -4856,7 +4862,7 @@ var MediaElementPlayer = function () {
 						if (t.media.paused) {
 							t.pp = t.media.play();
 						} else {
-							mejs.players.mep_0.playPromisePause(t.media);
+							t.media.playPromisePause(t.media);
 							//t.media.pause();
 						}
 

@@ -753,6 +753,7 @@ var MediaElement = function MediaElement(idOrNode, options) {
 				});
 			} else {
 				if(window.console) console.log('Pause attempt while still loading.');
+				if(obj.getReadyState() == 4 && !obj.getPaused() && !obj.paused) obj.pause();
 			}
 		} else {
 			obj.pause();

@@ -744,6 +744,7 @@ var MediaElement = function MediaElement(idOrNode, options) {
 	// BGSU : PlayPromise Pause
 	t.mediaElement.playPromisePause = function(obj){
 		if(!mejs.Features.IS_EDGE){
+			logger.debug(pp);
 			if(pp !== undefined){
 				pp.then(_ => {
 					obj.pause();
@@ -4280,7 +4281,8 @@ var MediaElementPlayer = function () {
 									} else if (t.media.paused) {
 										t.play();
 									} else {
-										t.pause();
+										mejs.players.mep_0.playPromisePause(t.media);
+										//t.pause();
 									}
 
 									button.attr('aria-pressed', !pressed);
@@ -4377,7 +4379,7 @@ var MediaElementPlayer = function () {
 						if (typeof t.media.stop === 'function') {
 							t.media.stop();
 						} else {
-						t.playPromisePause(t.media);
+							mejs.players.mep_0.playPromisePause(t.media);
 						}
 
 						if (t.setProgressRail) {

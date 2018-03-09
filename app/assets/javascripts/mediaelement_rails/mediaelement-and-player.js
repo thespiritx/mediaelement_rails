@@ -533,6 +533,7 @@ var MediaElement = function MediaElement(idOrNode, options) {
 	t.mediaElement.renderers = {};
 	t.mediaElement.renderer = null;
 	t.mediaElement.rendererName = null;
+	t.mediaElement.debug=false;
 	/**
   * Determine whether the renderer was found or not
   *
@@ -749,10 +750,10 @@ var MediaElement = function MediaElement(idOrNode, options) {
 					obj.pause();
 				})
 				.catch(error => {
-					if(window.console) console.log('Pause attempt failed.');
+					if(window.console && obj.debug) console.log('Pause attempt failed.');
 				});
 			} else {
-				if(window.console) console.log('Pause attempt while still loading.');
+				if(window.console && obj.debug) console.log('Pause attempt while still loading.');
 				if(obj.getReadyState() == 4 && !obj.getPaused() && !obj.paused) obj.pause();
 			}
 		} else {
@@ -1967,7 +1968,7 @@ Object.assign(_player2.default.prototype, {
 				if (e.which === 1 || e.which === 0) {
 
 					if (!media.paused) {
-						t.media.pause();
+						t.media.playPromisePause(t.media);
 						t.forcedHandlePause = true;
 					}
 

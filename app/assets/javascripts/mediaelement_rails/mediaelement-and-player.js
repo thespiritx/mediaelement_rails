@@ -744,7 +744,6 @@ var MediaElement = function MediaElement(idOrNode, options) {
 	// BGSU : PlayPromise Pause
 	t.mediaElement.playPromisePause = function(obj){
 		if(!mejs.Features.IS_EDGE){
-			logger.debug(pp);
 			if(pp !== undefined){
 				pp.then(_ => {
 					obj.pause();

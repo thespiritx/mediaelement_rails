@@ -5394,7 +5394,7 @@ var NativeDash = {
 		} else if (!NativeDash.isScriptLoaded) {
 			(function () {
 
-				settings.options.path = typeof settings.options.path === 'string' ? settings.options.path : '//cdn.dashjs.org/latest/dash.mediaplayer.min.js';
+				settings.options.path = typeof settings.options.path === 'string' ? settings.options.path : _constants.IS_IE?'//cdn.dashjs.org/v2.5.0/dash.mediaplayer.min.js':'//cdn.dashjs.org/v2.9.1/dash.mediaplayer.min.js';
 
 				var script = _document2.default.createElement('script'),
 				    firstScriptTag = _document2.default.getElementsByTagName('script')[0];

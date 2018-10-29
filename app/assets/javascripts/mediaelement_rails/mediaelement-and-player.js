@@ -5453,7 +5453,7 @@ var DashNativeRenderer = {
 		prefix: 'native_dash',
 		dash: {
 			// Special config: used to set the local path/URL of dash.js player library
-			path: '//cdn.dashjs.org/v2.5.0/dash.mediaplayer.min.js',
+			path: _constants.IS_IE?'//cdn.dashjs.org/v2.5.0/dash.mediaplayer.min.js':'//cdn.dashjs.org/v2.9.1/dash.mediaplayer.min.js',
 			debug: false
 		}
 	},
